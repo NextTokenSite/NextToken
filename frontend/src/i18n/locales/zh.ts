@@ -378,6 +378,7 @@ export default {
     channelPricing: '渠道定价',
     channelMonitor: '渠道监控',
     channelStatus: '渠道状态',
+    modelsMarket: '模型广场',
   },
 
   // Auth

@@ -1,5 +1,72 @@
 <template>
-  <div class="market-page">
+  <!-- 已登录用户：套 AppLayout（含侧栏 + 顶栏），让模型广场作为登录后内嵌页融入主框架 -->
+  <AppLayout v-if="isAuthenticated">
+    <div class="market-page in-layout">
+      <main class="market-main">
+        <Hero :stats="store.stats" />
+
+        <Filters
+          v-model="filterState"
+          :platforms="availablePlatforms"
+          :groups="availableGroupNames"
+        />
+
+        <!-- Loading（首次） -->
+        <div v-if="store.loading && !store.fetchedAt" class="skeleton-grid">
+          <div v-for="i in 6" :key="i" class="skeleton-card" />
+        </div>
+
+        <!-- Error -->
+        <div v-else-if="store.error" class="state state-error">
+          <div class="state-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <circle cx="12" cy="12" r="10"></circle>
+              <path d="M12 8v4M12 16h.01"></path>
+            </svg>
+          </div>
+          <h3>{{ t('error.title') }}</h3>
+          <p>{{ store.error }}</p>
+          <button class="btn btn-secondary" @click="store.load(true)">{{ t('error.retry') }}</button>
+        </div>
+
+        <!-- 空数据 -->
+        <div v-else-if="store.groups.length === 0" class="state state-empty">
+          <div class="state-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
+              <path d="M3.27 6.96 12 12.01l8.73-5.05M12 22.08V12"></path>
+            </svg>
+          </div>
+          <h3>{{ t('empty.title') }}</h3>
+          <p>{{ t('empty.desc') }}</p>
+        </div>
+
+        <!-- 筛选无结果 -->
+        <div v-else-if="filteredGroups.length === 0" class="state state-empty">
+          <div class="state-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <circle cx="11" cy="11" r="8"></circle>
+              <path d="m21 21-4.35-4.35"></path>
+            </svg>
+          </div>
+          <p>{{ t('empty.filtered') }}</p>
+          <button class="btn btn-secondary" @click="resetFilters">{{ t('empty.reset') }}</button>
+        </div>
+
+        <!-- 分组列表 -->
+        <div v-else class="group-list">
+          <GroupSection
+            v-for="g in filteredGroups"
+            :key="g.id"
+            :group="g"
+          />
+        </div>
+      </main>
+    </div>
+  </AppLayout>
+
+  <!-- 未登录用户：保留原公开页样式（自带顶栏 + 全屏装饰背景） -->
+  <div v-else class="market-page">
     <!-- 装饰背景层：teal blur 球 + 网格点阵，与 HomeView 设计语言保持一致 -->
     <div class="market-bg" aria-hidden="true">
       <div class="blob blob-1"></div>
@@ -138,6 +205,7 @@ import Hero from './components/Hero.vue'
 import Filters, { type FilterState } from './components/Filters.vue'
 import GroupSection from './components/GroupSection.vue'
 import LocaleSwitcher from '@/components/common/LocaleSwitcher.vue'
+import AppLayout from '@/components/layout/AppLayout.vue'
 import type { PublicModelEntry } from './types'
 
 const appStore = useAppStore()
@@ -252,6 +320,12 @@ onMounted(() => store.load())
 
 /* —— Main —— */
 .market-main { @apply relative z-10 mx-auto flex max-w-7xl flex-col gap-6 px-6 pb-20 pt-8; }
+
+/* —— 已登录嵌入模式（套在 AppLayout 内） ——
+ * AppLayout 已经提供 fixed 背景层、侧栏偏移和 main padding，
+ * 这里需要去掉自己的全屏背景和最小高度，避免双层背景/双层滚动条。 */
+.market-page.in-layout { @apply min-h-0 bg-transparent dark:bg-transparent; }
+.market-page.in-layout .market-main { @apply px-0 pb-4 pt-0; }
 
 /* —— Skeleton —— */
 .skeleton-grid { @apply grid gap-4 md:grid-cols-2 lg:grid-cols-3; }

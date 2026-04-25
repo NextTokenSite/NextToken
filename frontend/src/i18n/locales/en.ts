@@ -378,6 +378,7 @@ export default {
     channelPricing: 'Channel Pricing',
     channelMonitor: 'Channel Monitor',
     channelStatus: 'Channel Status',
+    modelsMarket: 'Models Market',
   },
 
   // Auth
