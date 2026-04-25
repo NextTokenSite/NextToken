@@ -136,3 +136,14 @@ docs/*
 frontend/coverage/
 aicodex
 output/
+
+# ===================
+# 本地工具产物（不进仓库）
+# ===================
+# Playwright CLI 本地缓存
+.playwright-cli/
+frontend/.playwright-cli/
+# 本地任务/笔记目录（CLAUDE.md 约定）
+tasks/
+# 仓库根散落的临时 SVG
+/squares-2x2.svg
