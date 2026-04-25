@@ -79,7 +79,8 @@
                 </p>
               </div>
             </div>
-            <button :class="['btn w-full py-3 text-base font-medium', paymentButtonClass]" :disabled="!canSubmit || submitting" @click="handleSubmitRecharge">
+            <!-- 充值确认支付按钮：当前已强制禁用，保留 click/loading 逻辑以便后续按需放开 -->
+            <button :class="['btn w-full py-3 text-base font-medium', paymentButtonClass]" :disabled="true" @click="handleSubmitRecharge">
               <span v-if="submitting" class="flex items-center justify-center gap-2">
                 <span class="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent"></span>
                 {{ t('common.processing') }}
