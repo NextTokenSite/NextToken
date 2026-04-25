@@ -4,6 +4,7 @@ import App from './App.vue'
 import router from './router'
 import i18n, { initI18n } from './i18n'
 import { useAppStore } from '@/stores/app'
+import { registerModelsMarketRoute } from '@/features/models-market/registerRoute'
 import './style.css'
 
 function initThemeClass() {
@@ -33,6 +34,9 @@ async function bootstrap() {
   }
 
   await initI18n()
+
+  // 注册模型广场扩展路由（fork-friendly：不动 router/index.ts）
+  registerModelsMarketRoute(router)
 
   app.use(router)
   app.use(i18n)

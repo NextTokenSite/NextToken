@@ -126,14 +126,20 @@
               {{ siteSubtitle }}
             </p>
 
-            <!-- CTA Button -->
-            <div>
+            <!-- CTA Buttons -->
+            <div class="flex flex-wrap items-center gap-3 lg:justify-start justify-center">
               <router-link
                 :to="isAuthenticated ? dashboardPath : '/login'"
                 class="btn btn-primary px-8 py-3 text-base shadow-lg shadow-primary-500/30"
               >
                 {{ isAuthenticated ? t('home.goToDashboard') : t('home.getStarted') }}
                 <Icon name="arrowRight" size="md" class="ml-2" :stroke-width="2" />
+              </router-link>
+              <router-link
+                to="/models"
+                class="btn btn-secondary px-8 py-3 text-base"
+              >
+                {{ modelsMarketLabel }}
               </router-link>
             </div>
           </div>
@@ -411,7 +417,10 @@ import { useAuthStore, useAppStore } from '@/stores'
 import LocaleSwitcher from '@/components/common/LocaleSwitcher.vue'
 import Icon from '@/components/icons/Icon.vue'
 
-const { t } = useI18n()
+const { t, locale } = useI18n()
+
+// 模型广场按钮文案（feature-local，不依赖全局 i18n key）
+const modelsMarketLabel = computed(() => locale.value === 'zh' ? '模型广场' : 'Models Market')
 
 const authStore = useAuthStore()
 const appStore = useAppStore()

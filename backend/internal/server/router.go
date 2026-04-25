@@ -112,4 +112,8 @@ func registerRoutes(
 	routes.RegisterAdminRoutes(v1, h, adminAuth)
 	routes.RegisterGatewayRoutes(r, h, apiKeyAuth, apiKeyService, subscriptionService, opsService, settingService, cfg)
 	routes.RegisterPaymentRoutes(v1, h.Payment, h.PaymentWebhook, h.Admin.Payment, jwtAuth, adminAuth, settingService)
+
+	// 模型广场公开接口（fork 扩展，不进 wire DI；method 复用 h.AvailableChannel）
+	public := v1.Group("/public")
+	public.GET("/models", h.AvailableChannel.ListPublicModels)
 }
