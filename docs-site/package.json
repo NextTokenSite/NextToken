@@ -1,0 +1,16 @@
+{
+  "name": "nexttoken-docs-site",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "NextToken 用户与开发者文档站(独立部署,基于 VitePress)",
+  "scripts": {
+    "dev": "vitepress dev .",
+    "build": "vitepress build . && node scripts/copy-md.mjs",
+    "preview": "vitepress preview ."
+  },
+  "devDependencies": {
+    "vitepress": "^1.5.0",
+    "vue": "^3.4.0"
+  }
+}

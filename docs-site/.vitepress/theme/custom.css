@@ -1,0 +1,105 @@
+/**
+ * 主题视觉定制:覆盖 VitePress 默认主题的 CSS 变量。
+ * 仅改"调色 + 间距",不改组件结构。任何升级 VitePress 都不会破坏。
+ */
+
+:root {
+  /* 品牌色:深靛蓝(#4f46e5 系) */
+  --vp-c-brand-1: #4f46e5;
+  --vp-c-brand-2: #6366f1;
+  --vp-c-brand-3: #818cf8;
+  --vp-c-brand-soft: rgba(99, 102, 241, 0.14);
+
+  /* 按钮主色 */
+  --vp-button-brand-bg: #4f46e5;
+  --vp-button-brand-hover-bg: #4338ca;
+  --vp-button-brand-active-bg: #3730a3;
+  --vp-button-brand-border: transparent;
+  --vp-button-brand-hover-border: transparent;
+  --vp-button-brand-active-border: transparent;
+  --vp-button-brand-text: #ffffff;
+  --vp-button-brand-hover-text: #ffffff;
+  --vp-button-brand-active-text: #ffffff;
+
+  /* 首页 hero 渐变文字 */
+  --vp-home-hero-name-color: transparent;
+  --vp-home-hero-name-background: -webkit-linear-gradient(120deg, #4f46e5 30%, #06b6d4);
+
+  /* 首页 hero 图像柔光 */
+  --vp-home-hero-image-background-image: linear-gradient(-45deg, #6366f1 50%, #06b6d4 50%);
+  --vp-home-hero-image-filter: blur(44px);
+}
+
+.dark {
+  --vp-c-brand-1: #818cf8;
+  --vp-c-brand-2: #a5b4fc;
+  --vp-c-brand-3: #c7d2fe;
+  --vp-c-brand-soft: rgba(129, 140, 248, 0.18);
+
+  --vp-button-brand-bg: #6366f1;
+  --vp-button-brand-hover-bg: #818cf8;
+  --vp-button-brand-active-bg: #4f46e5;
+}
+
+/* 首页 hero 标题字号略放大 */
+.VPHomeHero .name,
+.VPHomeHero .text {
+  font-size: clamp(40px, 6vw, 64px) !important;
+  line-height: 1.15 !important;
+}
+
+/* feature 卡片:加圆角、悬停轻微浮起 */
+.VPFeature {
+  border-radius: 14px !important;
+  transition: transform 0.18s ease, box-shadow 0.18s ease;
+}
+.VPFeature:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(99, 102, 241, 0.12);
+}
+
+/* sidebar:行距更舒展,层级更清晰 */
+.VPSidebarItem.level-0 {
+  padding-bottom: 18px;
+}
+.VPSidebarItem.level-0 > .item > .text {
+  font-weight: 700;
+  letter-spacing: 0.01em;
+}
+
+/* 文档正文:标题与段落呼吸感 */
+.vp-doc h2 {
+  margin-top: 40px !important;
+  padding-top: 18px !important;
+  border-top: 1px solid var(--vp-c-divider);
+}
+.vp-doc h3 {
+  margin-top: 28px !important;
+}
+
+/* 代码块:更大圆角,加边框 */
+.vp-doc div[class*='language-'] {
+  border-radius: 12px !important;
+  border: 1px solid var(--vp-c-divider);
+}
+
+/* 内联代码:小药丸 */
+.vp-doc :not(pre) > code {
+  background-color: var(--vp-c-brand-soft);
+  color: var(--vp-c-brand-1);
+  padding: 2px 6px;
+  border-radius: 5px;
+  font-size: 0.92em;
+}
+
+/* 表格:更现代的边框 */
+.vp-doc table {
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+/* 顶部导航:略微淡化背景 */
+.VPNavBar.has-sidebar .content-body,
+.VPNavBar:not(.has-sidebar) {
+  backdrop-filter: blur(12px);
+}

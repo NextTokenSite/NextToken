@@ -1,0 +1,7 @@
+node_modules
+.vitepress/dist
+.vitepress/cache
+*.log
+.DS_Store
+# 历史调试残留(Windows 回收站污染),路径过深无法用命令删除,显式 ignore 防止意外纳入
+backend/
