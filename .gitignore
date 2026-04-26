@@ -102,6 +102,13 @@ backend/internal/web/dist/
 backend/internal/web/dist/*
 !backend/internal/web/dist/.keep
 
+# 后端嵌入的文档站构建产物(VitePress)
+# 同样保留 .gitkeep,使 //go:embed all:docs_dist 在 CI/lint 时始终有匹配项
+backend/internal/web/docs_dist/
+!backend/internal/web/docs_dist/
+backend/internal/web/docs_dist/*
+!backend/internal/web/docs_dist/.gitkeep
+
 # 后端运行时缓存数据
 backend/data/
 
@@ -118,7 +125,9 @@ backend/.installed
 tests
 CLAUDE.md
 .claude
-scripts
+# 仅 ignore scripts 目录下的临时文件,保留版本管理需要的脚本
+scripts/*.tmp
+scripts/.cache/
 .code-review-state
 #openspec/
 code-reviews/

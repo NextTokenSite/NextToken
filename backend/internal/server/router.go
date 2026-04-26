@@ -61,6 +61,10 @@ func SetupRouter(
 		return nil
 	}))
 
+	// 文档站(VitePress)中间件:必须在前端中间件之前注册。
+	// 它仅拦截 /docs 与 /docs/* 路径,其余请求透传;不嵌入文档时会返回 404 提示。
+	r.Use(web.ServeEmbeddedDocs())
+
 	// Serve embedded frontend with settings injection if available
 	if web.HasEmbeddedFrontend() {
 		frontendServer, err := web.NewFrontendServer(settingService)

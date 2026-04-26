@@ -1,4 +1,4 @@
-.PHONY: build build-backend build-frontend build-datamanagementd test test-backend test-frontend test-frontend-critical test-datamanagementd secret-scan
+.PHONY: build build-backend build-frontend build-docs build-embed build-datamanagementd test test-backend test-frontend test-frontend-critical test-datamanagementd secret-scan
 
 FRONTEND_CRITICAL_VITEST := \
 	src/views/auth/__tests__/LinuxDoCallbackView.spec.ts \
@@ -18,6 +18,19 @@ build-backend:
 # 编译前端（需要已安装依赖）
 build-frontend:
 	@pnpm --dir frontend run build
+
+# 编译文档站（VitePress），产物拷贝至后端 embed 目录
+# 首次运行前请执行: pnpm --dir docs-site install
+build-docs:
+	@pnpm --dir docs-site run build
+	@find backend/internal/web/docs_dist -mindepth 1 ! -name '.gitkeep' -delete
+	@cp -r docs-site/.vitepress/dist/. backend/internal/web/docs_dist/
+
+# 一键产出可投产二进制：前端 + 文档 + 带 embed 的后端
+# 输出路径: backend/sub2api
+build-embed: build-frontend build-docs
+	@cd backend && go build -tags embed -o sub2api ./cmd/server
+	@echo "Built: backend/sub2api (with embedded frontend + docs)"
 
 # 编译 datamanagementd（宿主机数据管理进程）
 build-datamanagementd:

@@ -71,6 +71,11 @@ func SecurityHeaders(cfg config.CSPConfig, getFrameSrcOrigins func() []string) g
 			c.Next()
 			return
 		}
+		if isDocsPath(c) {
+			c.Header("Content-Security-Policy", "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self' https:; base-uri 'self'; frame-ancestors 'none'")
+			c.Next()
+			return
+		}
 
 		if cfg.Enabled {
 			// Generate nonce for this request
@@ -98,6 +103,14 @@ func isAPIRoutePath(c *gin.Context) bool {
 		strings.HasPrefix(path, "/antigravity/") ||
 		strings.HasPrefix(path, "/responses") ||
 		strings.HasPrefix(path, "/images")
+}
+
+func isDocsPath(c *gin.Context) bool {
+	if c == nil || c.Request == nil || c.Request.URL == nil {
+		return false
+	}
+	path := c.Request.URL.Path
+	return path == "/docs" || strings.HasPrefix(path, "/docs/")
 }
 
 // enhanceCSPPolicy ensures the CSP policy includes nonce support, Cloudflare Insights,
