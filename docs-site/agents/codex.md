@@ -71,8 +71,8 @@
 
   操作步骤：
 
-    1. 按 [创建 API Key 教程](https://www.nextoken.online/docs/create-key.md) 生成 API Key。
-    2. 按 [CC-Switch](https://www.nextoken.online/docs/agents/cc-switch.md) 完成统一供应商配置。
+    1. 按 [创建 API Key 教程](https://docs.nexttoken.online/platform/create-key) 生成 API Key。
+    2. 按 [CC-Switch](https://docs.nexttoken.online/agents/cc-switch) 完成统一供应商配置。
     3. 配置完成后，重启 `Codex` 或 `Codex App`。
 
 ## 常见问题
@@ -121,7 +121,7 @@
 
   [model_providers.nexttoken]
   name = "nexttoken"
-  base_url = "https://nexttoken.dev/v1"
+  base_url = "https://nexttoken.online/v1"
   wire_api = "responses"
   requires_openai_auth = true
   ```

@@ -70,13 +70,13 @@
 
 ## 想用 NextToken生图，该用哪个客户端？
 
-- **桌面端**：推荐使用 [Cherry Studio](https://www.nextoken.online/docs/chatbot/cherry-studio.md)。界面简洁，配置方便，接入 NextToken 后在模型列表中选择支持生图的模型即可直接使用。
-- **Android 手机端**：推荐使用 [RikkaHub](https://www.nextoken.online/docs/chatbot/rikkahub.md)。接入 NextToken 并导入支持图像生成的模型后，将模型类型设为"图像"，再从侧边栏底部进入"生图"，选择模型即可开始生成。
+- **桌面端**：推荐使用 [Cherry Studio](https://docs.nexttoken.online/chatbot/cherry-studio)。界面简洁，配置方便，接入 NextToken 后在模型列表中选择支持生图的模型即可直接使用。
+- **Android 手机端**：推荐使用 [RikkaHub](https://docs.nexttoken.online/chatbot/rikkahub)。接入 NextToken 并导入支持图像生成的模型后，将模型类型设为"图像"，再从侧边栏底部进入"生图"，选择模型即可开始生成。
 
 **快速开始：**
 
-- **Cherry Studio**：按 [Cherry Studio 使用指南](https://www.nextoken.online/docs/chatbot/cherry-studio.md) 完成安装并接入 NextToken，在模型列表中选择支持生图的模型（如 `gpt-image-2` 等），在对话界面发送提示词即可生成图片。
-- **RikkaHub**：按 [RikkaHub 使用指南](https://www.nextoken.online/docs/chatbot/rikkahub.md) 完成接入，参考其中的"使用生图"章节完成配置。
+- **Cherry Studio**：按 [Cherry Studio 使用指南](https://docs.nexttoken.online/chatbot/cherry-studio) 完成安装并接入 NextToken，在模型列表中选择支持生图的模型（如 `gpt-image-2` 等），在对话界面发送提示词即可生成图片。
+- **RikkaHub**：按 [RikkaHub 使用指南](https://docs.nexttoken.online/chatbot/rikkahub) 完成接入，参考其中的"使用生图"章节完成配置。
 
 
 

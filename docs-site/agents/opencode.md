@@ -134,8 +134,8 @@ scoop install opencode
 
 操作步骤：
 
-1. 按 [创建 API Key 教程](https://www.nextoken.online/docs/platform/create-apikey.md) 生成 API Key。
-2. 按 [CC-Switch](https://www.nextoken.online/docs/agents/cc-switch.md) 完成统一供应商配置。
+1. 按 [创建 API Key 教程](https://docs.nexttoken.online/platform/create-apikey) 生成 API Key。
+2. 按 [CC-Switch](https://docs.nexttoken.online/agents/cc-switch) 完成统一供应商配置。
 3. 配置完成后，重启 `OpenCode`。
 
   </DocsTab>
@@ -160,7 +160,7 @@ scoop install opencode
       "npm": "@ai-sdk/openai-compatible",
       "name": "nexttoken",
       "options": {
-        "baseURL": "https://nexttoken.dev/v1",
+        "baseURL": "https://nexttoken.online/v1",
         "apiKey": "YOUR_nexttoken_API_KEY"
       },
       "models": {
@@ -343,7 +343,7 @@ scoop install opencode
 这个示例按 OpenCode 官方 `custom provider` 的写法整理：
 
 - `nexttoken` 是自定义 provider ID。
-- `npm` 指定 OpenCode 使用 `@ai-sdk/openai-compatible` 接入 `https://nexttoken.dev/v1`。
+- `npm` 指定 OpenCode 使用 `@ai-sdk/openai-compatible` 接入 `https://nexttoken.online/v1`。
 - `variants` 不再只写空对象，而是显式传递 `reasoningEffort`，更贴近 OpenCode 官方示例。
 - `gpt-5.4` 的 `none / low / medium / high / xhigh` 已用真实 `opencode run` 验证可用；`minimal` 会直接报不支持。
 - `claude-opus-4-6` 和 `claude-sonnet-4-6` 的 `low / medium / high` 已用真实 `opencode run` 验证可正常调用；这只能说明当前 nexttoken 接法接受这些 variants，不等同于 Anthropic 原生 `thinking` budget 档位声明。

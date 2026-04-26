@@ -22,7 +22,7 @@
 - **订阅购买**：通常更便宜，有效期为 7/30 天。
 - **按量购买**：按实际使用量计费，无时间限制。
 
-前往 [充值/订阅页面](https://www.nextoken.online/purchase) 即可选择适合的购买方式。
+前往 [充值/订阅页面](https://www.nexttoken.online/purchase) 即可选择适合的购买方式。
 
 ## 计费规则细节
 
@@ -60,11 +60,11 @@
 - 输出：`19.5`（15 × 1.3）
 - 缓存：`0.325`（0.25 × 1.3）
 
-这些调整后的价格就是模型广场显示的价格，也是最终支付的价格。具体的模型价格和分组倍率，请在 [模型广场](https://www.nextoken.online/models) 查看。
+这些调整后的价格就是模型广场显示的价格，也是最终支付的价格。具体的模型价格和分组倍率，请在 [模型广场](https://www.nexttoken.online/models) 查看。
 
 ## 在哪里看消耗
 
-「[使用记录](https://www.nextoken.online/usage)」页提供三种视图:
+「[使用记录](https://www.nexttoken.online/usage)」页提供三种视图:
 
 - **明细**:每次调用的时间、模型、Key、输入/输出 token、本次费用
 - **聚合**:按日/月/Key/模型分组的累计统计
@@ -85,13 +85,13 @@
 
 按量购买无时间限制，按实际使用量计费。
 
-前往 [充值/订阅页面](https://www.nextoken.online/purchase) 完成购买（加微信联系）。
+前往 [充值/订阅页面](https://www.nexttoken.online/purchase) 完成购买（加微信联系）。
 
 ## 相关入口
 
-- [模型广场](https://www.nextoken.online/models) — 查看所有模型的价格
-- [充值/订阅](https://www.nextoken.online/purchase) — 购买推理积分
-- [邀请返利](https://www.nextoken.online/docs/platform/affiliate.md) — 邀请好友获得返利
+- [模型广场](https://www.nexttoken.online/models) — 查看所有模型的价格
+- [充值/订阅](https://www.nexttoken.online/purchase) — 购买推理积分
+- [邀请返利](https://docs.nexttoken.online/platform/affiliate) — 邀请好友获得返利
 
 ## 注意
 

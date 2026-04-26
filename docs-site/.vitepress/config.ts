@@ -1,11 +1,9 @@
 import { defineConfig } from 'vitepress'
 
 // VitePress 站点配置
-// base 通过环境变量 DOCS_BASE 控制,以兼容两种部署形态:
-//   - 嵌入主站后端 /docs/ 子路径 -> 不设环境变量,默认 '/docs/'
-//   - 独立部署到 GitHub Pages 自定义子域名(docs.nexttoken.online)-> DOCS_BASE='/'
-// 设置示例:`DOCS_BASE=/ pnpm run build`
-const docsBase = process.env.DOCS_BASE ?? '/docs/'
+// 默认部署到 GitHub Pages + 自定义子域名 docs.nexttoken.online,根路径 base = '/'。
+// 保留 DOCS_BASE 环境变量覆盖能力,以便日后部署到子路径(如 user.github.io/repo/)时复用同一份源。
+const docsBase = process.env.DOCS_BASE ?? '/'
 
 export default defineConfig({
   base: docsBase,

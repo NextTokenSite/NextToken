@@ -88,8 +88,8 @@ npx @anthropic-ai/claude-code
 
 操作步骤：
 
-1. 按 [创建 API Key 教程](https://www.nextoken.online/docs/platform/create-key.md) 生成 API Key。
-2. 按 [CC-Switch](https://www.nextoken.online/docs/agents/cc-switch.md) 完成统一供应商配置。
+1. 按 [创建 API Key 教程](https://docs.nexttoken.online/platform/create-key) 生成 API Key。
+2. 按 [CC-Switch](https://docs.nexttoken.online/agents/cc-switch) 完成统一供应商配置。
 3. 配置完成后，重启 `Claude Code`。
 
   </DocsTab>
@@ -107,7 +107,7 @@ npx @anthropic-ai/claude-code
 在终端中运行：
 
 ```bash
-export ANTHROPIC_BASE_URL="https://www.nextoken.online"
+export ANTHROPIC_BASE_URL="https://www.nexttoken.online"
 export ANTHROPIC_AUTH_TOKEN="YOUR_NEXTTOKEN_API_KEY"
 export CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC=1
 ```
@@ -117,7 +117,7 @@ export CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC=1
 **Windows PowerShell**
 
 ```powershell
-$env:ANTHROPIC_BASE_URL="https://www.nextoken.online"
+$env:ANTHROPIC_BASE_URL="https://www.nexttoken.online"
 $env:ANTHROPIC_AUTH_TOKEN="YOUR_NEXTTOKEN_API_KEY"
 $env:CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC=1
 ```
@@ -125,7 +125,7 @@ $env:CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC=1
 **Windows CMD**
 
 ```cmd
-set ANTHROPIC_BASE_URL=https://www.nextoken.online
+set ANTHROPIC_BASE_URL=https://www.nexttoken.online
 set ANTHROPIC_AUTH_TOKEN=YOUR_NEXTTOKEN_API_KEY
 set CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC=1
 ```
@@ -151,7 +151,7 @@ set CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC=1
 ```json
 {
   "env": {
-    "ANTHROPIC_BASE_URL": "https://www.nextoken.online",
+    "ANTHROPIC_BASE_URL": "https://www.nexttoken.online",
     "ANTHROPIC_AUTH_TOKEN": "YOUR_NEXTTOKEN_API_KEY",
     "CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC": "1",
     "CLAUDE_CODE_ATTRIBUTION_HEADER": "0"
