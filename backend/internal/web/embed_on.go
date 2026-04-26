@@ -307,10 +307,7 @@ func shouldBypassEmbeddedFrontend(path string) bool {
 		trimmed == "/health" ||
 		trimmed == "/responses" ||
 		strings.HasPrefix(trimmed, "/responses/") ||
-		strings.HasPrefix(trimmed, "/images/") ||
-		// /docs 由独立的 docs 中间件处理,前端 SPA 不应介入
-		trimmed == "/docs" ||
-		strings.HasPrefix(trimmed, "/docs/")
+		strings.HasPrefix(trimmed, "/images/")
 }
 
 func serveIndexHTML(c *gin.Context, fsys fs.FS) {
