@@ -128,8 +128,6 @@ CLAUDE.md
 # 仅 ignore scripts 目录下的临时文件,保留版本管理需要的脚本
 scripts/*.tmp
 scripts/.cache/
-# 上游 docs/(PAYMENT.md 等)在本 fork 不跟踪;以后从 upstream 拉回会重新出现,届时再 git rm --cached
-docs/
 .code-review-state
 #openspec/
 code-reviews/
