@@ -1,10 +1,14 @@
 import { defineConfig } from 'vitepress'
 
 // VitePress 站点配置
-// 部署形态:作为主站后端的子路径 /docs/ 提供,因此 base 固定 '/docs/'。
-// 若日后切换为独立子域名(如 docs.nexttoken.online),将 base 改回 '/'。
+// base 通过环境变量 DOCS_BASE 控制,以兼容两种部署形态:
+//   - 嵌入主站后端 /docs/ 子路径 -> 不设环境变量,默认 '/docs/'
+//   - 独立部署到 GitHub Pages 自定义子域名(docs.nexttoken.online)-> DOCS_BASE='/'
+// 设置示例:`DOCS_BASE=/ pnpm run build`
+const docsBase = process.env.DOCS_BASE ?? '/docs/'
+
 export default defineConfig({
-  base: '/docs/',
+  base: docsBase,
   lang: 'zh-CN',
   title: 'NextToken 文档',
   description: 'NextToken 用户与开发者文档:快速开始、计费、客户端配置、FAQ',
