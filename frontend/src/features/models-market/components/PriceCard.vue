@@ -35,7 +35,14 @@ import { computed } from 'vue'
 import { useModelsMarketText } from '../i18n'
 import type { PublicModelEntry } from '../types'
 
-const props = defineProps<{ model: PublicModelEntry }>()
+interface PriceCardProps {
+  model: PublicModelEntry
+  rateMultiplier?: number
+}
+
+const props = withDefaults(defineProps<PriceCardProps>(), {
+  rateMultiplier: 1,
+})
 const { t } = useModelsMarketText()
 
 const PER_MILLION = 1_000_000
@@ -72,10 +79,10 @@ const chipColor = computed(() => {
   }
 })
 
-// fmt 把 per-token 单位转为 per-1M-token 并保留两位小数
-function fmt(perToken: number | undefined | null): string | null {
+// formatTokenPrice 把 per-token 基础价按分组倍率折算为 per-1M-token 并保留两位小数
+function formatTokenPrice(perToken: number | undefined | null): string | null {
   if (perToken == null) return null
-  return (perToken * PER_MILLION).toFixed(2)
+  return (perToken * props.rateMultiplier * PER_MILLION).toFixed(2)
 }
 
 // Row 比原来多带一个 dotColor，用小色点替代纯文字标签让 i/o/cache 一眼可辨
@@ -123,24 +130,25 @@ const priceRows = computed<Row[]>(() => {
     return rows
   }
 
-  const pushIf = (key: string, labelKey: LabelKey, perToken: number | undefined) => {
-    const v = fmt(perToken)
-    if (v != null) {
-      rows.push({
-        key,
-        label: t(labelKey),
-        num: v,
-        unit: tokenUnit,
-        dotColor: dotColorMap[labelKey],
-      })
-    }
+  // pushPriceRow 仅在字段有价格时追加对应价格行。
+  function pushPriceRow(key: string, labelKey: LabelKey, perToken: number | undefined): void {
+    const v = formatTokenPrice(perToken)
+    if (v == null) return
+
+    rows.push({
+      key,
+      label: t(labelKey),
+      num: v,
+      unit: tokenUnit,
+      dotColor: dotColorMap[labelKey],
+    })
   }
 
-  pushIf('input', 'price.input', p.input_price_per_token)
-  pushIf('output', 'price.output', p.output_price_per_token)
-  pushIf('cacheRead', 'price.cacheRead', p.cache_read_price_per_token)
-  pushIf('cacheWrite', 'price.cacheWrite', p.cache_write_price_per_token)
-  pushIf('image', 'price.image', p.image_output_price_per_token)
+  pushPriceRow('input', 'price.input', p.input_price_per_token)
+  pushPriceRow('output', 'price.output', p.output_price_per_token)
+  pushPriceRow('cacheRead', 'price.cacheRead', p.cache_read_price_per_token)
+  pushPriceRow('cacheWrite', 'price.cacheWrite', p.cache_write_price_per_token)
+  pushPriceRow('image', 'price.image', p.image_output_price_per_token)
 
   return rows
 })

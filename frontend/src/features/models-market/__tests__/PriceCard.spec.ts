@@ -25,12 +25,15 @@ describe('PriceCard', () => {
     expect(w.text()).toContain('gpt-5.2')
   })
 
-  it('价格 ×1e6 转为 USD/MTok 并保留两位小数', () => {
-    const w = mount(PriceCard, { props: { model: baseModel }, global: { plugins: [i18n] } })
+  it('价格按 per-token × 分组倍率 × 1M 转为 USD/MTok 并保留两位小数', () => {
+    const w = mount(PriceCard, {
+      props: { model: baseModel, rateMultiplier: 1.3 },
+      global: { plugins: [i18n] },
+    })
     const text = w.text()
-    expect(text).toContain('2.28')   // input
-    expect(text).toContain('18.20')  // output
-    expect(text).toContain('0.23')   // cache read
+    expect(text).toContain('2.96')   // input: 0.000002275 × 1.3 × 1e6 = 2.9575
+    expect(text).toContain('23.66')  // output: 0.0000182 × 1.3 × 1e6 = 23.66
+    expect(text).toContain('0.30')   // cache read: 2.275e-7 × 1.3 × 1e6 = 0.29575
     expect(text).toContain('USD / 1M Token')
   })
 
@@ -52,7 +55,7 @@ describe('PriceCard', () => {
     expect(w.text()).not.toContain('输出')
   })
 
-  it('pricing_mode=request 隐藏 token 行，显示按次价格', () => {
+  it('pricing_mode=request 隐藏 token 行，按次价格不乘倍率', () => {
     const m: PublicModelEntry = {
       id: 'm',
       display_name: 'M',
@@ -64,7 +67,10 @@ describe('PriceCard', () => {
         input_price_per_token: 0.0000025,
       },
     }
-    const w = mount(PriceCard, { props: { model: m }, global: { plugins: [i18n] } })
+    const w = mount(PriceCard, {
+      props: { model: m, rateMultiplier: 10 },
+      global: { plugins: [i18n] },
+    })
     expect(w.text()).not.toContain('输入')
     expect(w.text()).toContain('按次')
     expect(w.text()).toContain('0.05')

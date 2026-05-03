@@ -29,7 +29,12 @@
     </header>
 
     <div class="model-grid">
-      <PriceCard v-for="m in group.models" :key="`${group.id}-${m.id}`" :model="m" />
+      <PriceCard
+        v-for="m in group.models"
+        :key="`${group.id}-${m.id}`"
+        :model="m"
+        :rate-multiplier="group.rate_multiplier"
+      />
     </div>
   </section>
 </template>
