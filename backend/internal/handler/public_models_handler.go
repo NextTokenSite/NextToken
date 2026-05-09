@@ -20,7 +20,7 @@ import (
 // 响应规则（按"分组"组织，价格 = base × rate_multiplier）：
 //  1. 顶层 data 直接是 array，每条是一个公开分组（IsExclusive=false）
 //  2. 每个分组的 models = 所有 active 渠道里 group_ids 包含本分组 ID 且 platform 匹配的模型集合（按 model_id 去重）
-//  3. 价格 = 渠道原价 × 分组倍率，单位仍是 USD/token；前端按需转换显示单位
+//  3. 价格 = 渠道原价 × 分组倍率，单位仍是 积分/token；前端按需转换显示单位
 //  4. 价格字段 nil 或 0 时省略字段（json:omitempty）
 //  5. price_status: 任一价格字段非 nil 非 0 → "priced"；全部 nil/0 → "unpriced"
 //  6. pricing_mode: 取自渠道 BillingMode（"token" / "image" / "request"），fallback 为 "token"
@@ -53,17 +53,24 @@ func (h *AvailableChannelHandler) ListPublicModels(c *gin.Context) {
 // publicPricingDTO 模型定价子对象（嵌套在 publicModelDTO.Pricing 内）。
 //
 // 所有价格字段都是 *float64 + omitempty：上游 "0 = 未配置" 约定下，0 价格不应出现在响应里。
-// 单位是 USD per token（前端按需 ×1e6 转 USD/MTok 显示）。
+// 单位是 积分 per token（前端按需 ×1e6 转 积分/MTok 显示）。
 type publicPricingDTO struct {
 	PricingMode string `json:"pricing_mode"`
 	PriceStatus string `json:"price_status"`
 
-	InputPricePerToken       *float64 `json:"input_price_per_token,omitempty"`
-	OutputPricePerToken      *float64 `json:"output_price_per_token,omitempty"`
-	CacheWritePricePerToken  *float64 `json:"cache_write_price_per_token,omitempty"`
-	CacheReadPricePerToken   *float64 `json:"cache_read_price_per_token,omitempty"`
-	ImageOutputPricePerToken *float64 `json:"image_output_price_per_token,omitempty"`
-	PerRequestPrice          *float64 `json:"per_request_price,omitempty"`
+	InputPricePerToken       *float64             `json:"input_price_per_token,omitempty"`
+	OutputPricePerToken      *float64             `json:"output_price_per_token,omitempty"`
+	CacheWritePricePerToken  *float64             `json:"cache_write_price_per_token,omitempty"`
+	CacheReadPricePerToken   *float64             `json:"cache_read_price_per_token,omitempty"`
+	ImageOutputPricePerToken *float64             `json:"image_output_price_per_token,omitempty"`
+	PerRequestPrice          *float64             `json:"per_request_price,omitempty"`
+	PriceTiers               []publicPriceTierDTO `json:"price_tiers,omitempty"`
+}
+
+// publicPriceTierDTO 是公开模型广场可展示的按次价格档位。
+type publicPriceTierDTO struct {
+	TierLabel       string   `json:"tier_label"`
+	PerRequestPrice *float64 `json:"per_request_price,omitempty"`
 }
 
 // publicModelDTO 公开接口模型条目。
@@ -201,6 +208,7 @@ func buildPricing(p *service.ChannelModelPricing, rate float64) publicPricingDTO
 		CacheReadPricePerToken:   multiplyOrSkip(p.CacheReadPrice, rate),
 		ImageOutputPricePerToken: multiplyOrSkip(p.ImageOutputPrice, rate),
 		PerRequestPrice:          multiplyOrSkip(p.PerRequestPrice, rate),
+		PriceTiers:               buildPublicPriceTiers(p.Intervals, rate),
 	}
 
 	hasAny := out.InputPricePerToken != nil ||
@@ -208,7 +216,8 @@ func buildPricing(p *service.ChannelModelPricing, rate float64) publicPricingDTO
 		out.CacheWritePricePerToken != nil ||
 		out.CacheReadPricePerToken != nil ||
 		out.ImageOutputPricePerToken != nil ||
-		out.PerRequestPrice != nil
+		out.PerRequestPrice != nil ||
+		len(out.PriceTiers) > 0
 	if hasAny {
 		out.PriceStatus = priceStatusPriced
 	} else {
@@ -227,4 +236,27 @@ func multiplyOrSkip(base *float64, rate float64) *float64 {
 	}
 	v := *base * rate
 	return &v
+}
+
+// buildPublicPriceTiers 把内部 intervals 转为公开安全的按次价格档位。
+func buildPublicPriceTiers(intervals []service.PricingInterval, rate float64) []publicPriceTierDTO {
+	if len(intervals) == 0 {
+		return nil
+	}
+
+	sorted := append([]service.PricingInterval(nil), intervals...)
+	sort.SliceStable(sorted, func(i, j int) bool { return sorted[i].SortOrder < sorted[j].SortOrder })
+
+	tiers := make([]publicPriceTierDTO, 0, len(sorted))
+	for _, interval := range sorted {
+		price := multiplyOrSkip(interval.PerRequestPrice, rate)
+		if price == nil {
+			continue
+		}
+		tiers = append(tiers, publicPriceTierDTO{
+			TierLabel:       interval.TierLabel,
+			PerRequestPrice: price,
+		})
+	}
+	return tiers
 }

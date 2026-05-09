@@ -67,7 +67,7 @@ func TestAggregatePublicModels_BasicShape(t *testing.T) {
 }
 
 func TestAggregatePublicModels_RateMultiplierApplied(t *testing.T) {
-	// 价格 = base × rate_multiplier；单位仍是 USD/token（前端 ×1e6）。
+	// 价格 = base × rate_multiplier；单位仍是 积分/token（前端 ×1e6）。
 	channels := []service.AvailableChannel{
 		makeChannel("OpenAI", service.StatusActive,
 			[]service.AvailableGroupRef{
@@ -93,6 +93,51 @@ func TestAggregatePublicModels_RateMultiplierApplied(t *testing.T) {
 	require.InDelta(t, 0.0000182, *p.OutputPricePerToken, 1e-12)
 	require.NotNil(t, p.CacheReadPricePerToken)
 	require.InDelta(t, 2.275e-7, *p.CacheReadPricePerToken, 1e-15)
+}
+
+func TestAggregatePublicModels_ImageBillingIncludesPublicPriceTiers(t *testing.T) {
+	// 图片计费模型应把内部 intervals 映射为公开安全的按次价格 tiers。
+	max1K := 1
+	max2K := 2
+	channels := []service.AvailableChannel{
+		makeChannel("OpenAI", service.StatusActive,
+			[]service.AvailableGroupRef{
+				{ID: 4, Name: "ChatGPT Plus", Platform: "openai", RateMultiplier: 1.3, IsExclusive: false},
+			},
+			[]service.SupportedModel{
+				{Name: "GPT-image-2", Platform: "openai", Pricing: &service.ChannelModelPricing{
+					BillingMode: service.BillingModeImage,
+					InputPrice:  floatPtr(0.000005),
+					Intervals: []service.PricingInterval{
+						{MinTokens: 0, MaxTokens: &max1K, TierLabel: "1K", PerRequestPrice: floatPtr(1), SortOrder: 2},
+						{MinTokens: 1, MaxTokens: &max2K, TierLabel: "2K", PerRequestPrice: floatPtr(1.5), SortOrder: 1},
+						{MinTokens: 2, MaxTokens: nil, TierLabel: "4K", PerRequestPrice: floatPtr(2), SortOrder: 3},
+					},
+				}},
+			},
+		),
+	}
+	out := aggregatePublicModels(channels, stubResolver)
+	require.Len(t, out, 1)
+
+	raw, err := json.Marshal(out[0].Models[0].Pricing)
+	require.NoError(t, err)
+	var decoded map[string]any
+	require.NoError(t, json.Unmarshal(raw, &decoded))
+
+	require.Equal(t, "image", decoded["pricing_mode"])
+	require.Equal(t, "priced", decoded["price_status"])
+	require.NotContains(t, decoded, "intervals")
+	tiers, ok := decoded["price_tiers"].([]any)
+	require.True(t, ok, "price_tiers 应作为公开字段返回")
+	require.Len(t, tiers, 3)
+
+	first := tiers[0].(map[string]any)
+	require.Equal(t, "2K", first["tier_label"], "按 sort_order 稳定排序")
+	require.InDelta(t, 1.95, first["per_request_price"].(float64), 1e-9)
+	require.NotContains(t, first, "id")
+	require.NotContains(t, first, "pricing_id")
+	require.NotContains(t, first, "sort_order")
 }
 
 func TestAggregatePublicModels_ZeroPriceOmitted(t *testing.T) {

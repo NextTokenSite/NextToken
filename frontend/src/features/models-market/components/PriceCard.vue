@@ -85,6 +85,12 @@ function formatTokenPrice(perToken: number | undefined | null): string | null {
   return (perToken * props.rateMultiplier * PER_MILLION).toFixed(2)
 }
 
+// formatRequestPrice 展示后端已计算倍率的按次价格，只负责统一小数位。
+function formatRequestPrice(price: number | undefined | null): string | null {
+  if (price == null) return null
+  return price.toFixed(2)
+}
+
 // Row 比原来多带一个 dotColor，用小色点替代纯文字标签让 i/o/cache 一眼可辨
 interface Row {
   key: string
@@ -115,14 +121,31 @@ const priceRows = computed<Row[]>(() => {
   const tokenUnit = t('price.unitToken')
   const reqUnit = t('price.unitRequest')
 
+  // 图片计费存在 tiers 时优先展示按次档位，避免误落入 token 单位。
+  if (p.pricing_mode === 'image' && p.price_tiers?.length) {
+    for (const tier of p.price_tiers) {
+      const num = formatRequestPrice(tier.per_request_price)
+      if (num == null) continue
+      rows.push({
+        key: `tier-${tier.tier_label}`,
+        label: tier.tier_label,
+        num,
+        unit: reqUnit,
+        dotColor: 'dot-violet',
+      })
+    }
+    return rows
+  }
+
   // per_request 模式：只显示按次价格，隐藏 token 行
   const isPerRequest = p.pricing_mode === 'request' || p.per_request_price != null
   if (isPerRequest) {
-    if (p.per_request_price != null) {
+    const num = formatRequestPrice(p.per_request_price)
+    if (num != null) {
       rows.push({
         key: 'perRequest',
         label: t('price.perRequest'),
-        num: p.per_request_price.toFixed(2),
+        num,
         unit: reqUnit,
         dotColor: 'dot-amber',
       })

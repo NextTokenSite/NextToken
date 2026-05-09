@@ -25,7 +25,7 @@ describe('PriceCard', () => {
     expect(w.text()).toContain('gpt-5.2')
   })
 
-  it('价格按 per-token × 分组倍率 × 1M 转为 USD/MTok 并保留两位小数', () => {
+  it('价格按 per-token × 分组倍率 × 1M 转为积分/MTok 并保留两位小数', () => {
     const w = mount(PriceCard, {
       props: { model: baseModel, rateMultiplier: 1.3 },
       global: { plugins: [i18n] },
@@ -34,7 +34,7 @@ describe('PriceCard', () => {
     expect(text).toContain('2.96')   // input: 0.000002275 × 1.3 × 1e6 = 2.9575
     expect(text).toContain('23.66')  // output: 0.0000182 × 1.3 × 1e6 = 23.66
     expect(text).toContain('0.30')   // cache read: 2.275e-7 × 1.3 × 1e6 = 0.29575
-    expect(text).toContain('USD / 1M Token')
+    expect(text).toContain('积分 / 1M Token')
   })
 
   it('cache_write 字段缺失时不展示该行', () => {
@@ -74,7 +74,7 @@ describe('PriceCard', () => {
     expect(w.text()).not.toContain('输入')
     expect(w.text()).toContain('按次')
     expect(w.text()).toContain('0.05')
-    expect(w.text()).toContain('USD / 次')
+    expect(w.text()).toContain('积分 / 次')
   })
 
   it('chip 文案随 pricing_mode 切换', () => {
@@ -102,6 +102,35 @@ describe('PriceCard', () => {
       global: { plugins: [i18n] },
     })
     expect(reqW.text()).toContain('按次计费')
+  })
+
+  it('pricing_mode=image 且存在 price_tiers 时按图片档位展示按次价格', () => {
+    const m: PublicModelEntry = {
+      id: 'gpt-image-2',
+      display_name: 'GPT-Image-2',
+      pricing: {
+        pricing_mode: 'image',
+        price_status: 'priced',
+        input_price_per_token: 0.000005,
+        image_output_price_per_token: 0.000032,
+        price_tiers: [
+          { tier_label: '1K', per_request_price: 1 },
+          { tier_label: '2K', per_request_price: 1.5 },
+          { tier_label: '4K', per_request_price: 2 },
+        ],
+      },
+    }
+    const w = mount(PriceCard, { props: { model: m }, global: { plugins: [i18n] } })
+    const text = w.text()
+    expect(text).toContain('1K')
+    expect(text).toContain('1.00')
+    expect(text).toContain('2K')
+    expect(text).toContain('1.50')
+    expect(text).toContain('4K')
+    expect(text).toContain('2.00')
+    expect(text).toContain('积分 / 次')
+    expect(text).not.toContain('积分 / 1M Token')
+    expect(text).not.toContain('输入')
   })
 
   it('image_output 单独存在时显示图像输出行', () => {

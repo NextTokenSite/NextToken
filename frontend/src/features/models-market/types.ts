@@ -4,18 +4,24 @@
 export type PricingMode = 'token' | 'image' | 'request' | string
 export type PriceStatus = 'priced' | 'unpriced'
 
+export interface PublicPriceTier {
+  tier_label: string
+  per_request_price?: number
+}
+
 export interface PublicPricing {
   pricing_mode: PricingMode
   price_status: PriceStatus
 
   // 上游约定 0 = 未配置；后端通过 omitempty 在零价时省略。可能为 undefined。
-  // 单位 USD/token；前端 ×1e6 转 USD/MTok 显示。
+  // 单位 积分/token；前端 ×1e6 转 积分/MTok 显示。
   input_price_per_token?: number
   output_price_per_token?: number
   cache_write_price_per_token?: number
   cache_read_price_per_token?: number
   image_output_price_per_token?: number
   per_request_price?: number
+  price_tiers?: PublicPriceTier[]
 }
 
 export interface PublicModelEntry {
