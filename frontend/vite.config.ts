@@ -34,6 +34,29 @@ function injectPublicSettings(backendUrl: string): Plugin {
   }
 }
 
+/** 统一 Vite 模块 ID 的路径分隔符，避免 Windows 路径绕过分包规则。 */
+function normalizeModuleId(id: string): string {
+  return id.replace(/\\/g, '/')
+}
+
+/** 判断依赖是否必须和 Vue runtime 放在同一个 chunk，避免 vendor chunk 循环初始化。 */
+function isVueRuntimeDependency(id: string): boolean {
+  return [
+    '/vue/',
+    '/vue@',
+    '/vue-router/',
+    '/vue-router@',
+    '/pinia/',
+    '/pinia@',
+    '/vue-demi/',
+    '/vue-demi@',
+    '/@vue/',
+    '/@vue+',
+    '/@vueuse/',
+    '/@vueuse+'
+  ].some(marker => id.includes(marker))
+}
+
 export default defineConfig(({ mode }) => {
   // 加载环境变量
   const env = loadEnv(mode, process.cwd(), '')
@@ -70,29 +93,35 @@ export default defineConfig(({ mode }) => {
          * 分离第三方库并按功能合并应用代码，避免循环依赖
          */
         manualChunks(id: string) {
-          if (id.includes('node_modules')) {
-            // Vue 核心库
-            if (
-              id.includes('/vue/') ||
-              id.includes('/vue-router/') ||
-              id.includes('/pinia/') ||
-              id.includes('/@vue/')
-            ) {
+          const normalizedId = normalizeModuleId(id)
+          if (normalizedId.includes('node_modules')) {
+            // Vue 运行时及其响应式/工具依赖必须同 chunk，避免跨 vendor 循环初始化。
+            if (isVueRuntimeDependency(normalizedId)) {
               return 'vendor-vue'
             }
 
             // UI 工具库（较大，单独分离）
-            if (id.includes('/@vueuse/') || id.includes('/xlsx/')) {
+            if (normalizedId.includes('/xlsx/') || normalizedId.includes('/xlsx@')) {
               return 'vendor-ui'
             }
 
             // 图表库
-            if (id.includes('/chart.js/') || id.includes('/vue-chartjs/')) {
+            if (
+              normalizedId.includes('/chart.js/') ||
+              normalizedId.includes('/chart.js@') ||
+              normalizedId.includes('/vue-chartjs/') ||
+              normalizedId.includes('/vue-chartjs@')
+            ) {
               return 'vendor-chart'
             }
 
             // 国际化
-            if (id.includes('/vue-i18n/') || id.includes('/@intlify/')) {
+            if (
+              normalizedId.includes('/vue-i18n/') ||
+              normalizedId.includes('/vue-i18n@') ||
+              normalizedId.includes('/@intlify/') ||
+              normalizedId.includes('/@intlify+')
+            ) {
               return 'vendor-i18n'
             }
 
