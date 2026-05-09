@@ -85,7 +85,8 @@
       <!-- Subscribe Button -->
       <button
         type="button"
-        :class="['w-full rounded-xl py-2.5 text-sm font-semibold transition-all active:scale-[0.98]', btnClass]"
+        :class="['w-full rounded-xl py-2.5 text-sm font-semibold transition-all active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50 disabled:transform-none', btnClass]"
+        :disabled="true"
         @click="emit('select', plan)"
       >
         {{ isRenewal ? t('payment.renewNow') : t('payment.subscribeNow') }}
