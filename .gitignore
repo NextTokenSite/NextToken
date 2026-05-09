@@ -39,6 +39,7 @@ frontend/dist/
 vite.config.d.ts
 vite.config.js
 frontend/vite.config.js
+frontend/vite.config.ts
 vite.config.js.timestamp-*
 
 # 日志
