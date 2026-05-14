@@ -69,6 +69,8 @@ func (h *AvailableChannelHandler) ListProviderPricing(c *gin.Context) {
 const (
 	providerPricingSchemaVersion = "1.0"
 	providerPriceUnitMultiplier  = 1_000_000
+	providerUSDToCNYRate         = 6.78
+	providerCreditPerCNY         = 6.5
 )
 
 // providerPricingSuccessResponse 是 hvoy 抓取协议的成功响应。
@@ -231,12 +233,12 @@ func buildProviderPricing(channels []service.AvailableChannel, resolveID idResol
 	}
 }
 
-// providerPriceValue 把每 token 价格换算为每 1M tokens 价格；缺失时返回 0 以满足必填字段。
+// providerPriceValue 把每 token 美元额度价换算为每 1M tokens 人民币价格；缺失时返回 0 以满足必填字段。
 func providerPriceValue(base *float64, rate float64) float64 {
 	if base == nil {
 		return 0
 	}
-	return *base * rate * providerPriceUnitMultiplier
+	return *base * rate * providerPriceUnitMultiplier * providerUSDToCNYRate / providerCreditPerCNY
 }
 
 // providerOptionalPrice 把可选价格换算为每 1M tokens 价格；缺失或 0 时返回 nil。

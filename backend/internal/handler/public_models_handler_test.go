@@ -389,13 +389,13 @@ func TestBuildProviderPricing_ExportsPublicGroupPricesPerMillionTokens(t *testin
 	model := out.Models[0]
 	require.Equal(t, "claude-sonnet-4.6", model.ModelName)
 	require.Equal(t, "cc", model.GroupName)
-	require.InDelta(t, 7.5, model.InputPrice, 1e-9)
+	require.InDelta(t, 7.823076923076923, model.InputPrice, 1e-9)
 	require.NotNil(t, model.OutputPrice)
-	require.InDelta(t, 37.5, *model.OutputPrice, 1e-9)
+	require.InDelta(t, 39.11538461538462, *model.OutputPrice, 1e-9)
 	require.NotNil(t, model.CacheInputPrice)
-	require.InDelta(t, 0.75, *model.CacheInputPrice, 1e-9)
+	require.InDelta(t, 0.7823076923076923, *model.CacheInputPrice, 1e-9)
 	require.NotNil(t, model.CacheCreatePrice)
-	require.InDelta(t, 9.375, *model.CacheCreatePrice, 1e-9)
+	require.InDelta(t, 9.778846153846153, *model.CacheCreatePrice, 1e-9)
 	require.Nil(t, model.CacheCreatePrice1H)
 	require.True(t, model.Enabled)
 }
