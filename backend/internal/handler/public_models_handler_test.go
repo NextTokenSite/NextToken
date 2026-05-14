@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/Wei-Shaw/sub2api/internal/service"
 
@@ -341,6 +342,69 @@ func TestAggregatePublicModels_NoSensitiveFieldsRecursive(t *testing.T) {
 	var hits []string
 	scanForKeys(t, generic, deny, &hits, "")
 	require.Empty(t, hits, "敏感字段在响应中泄漏：%v", hits)
+}
+
+func TestBuildProviderPricing_ExportsPublicGroupPricesPerMillionTokens(t *testing.T) {
+	updatedAt := mustParseTime(t, "2026-04-22T12:00:00Z")
+	channels := []service.AvailableChannel{
+		makeChannel("Active", service.StatusActive,
+			[]service.AvailableGroupRef{
+				{ID: 4, Name: "cc", Platform: "anthropic", RateMultiplier: 1.5, IsExclusive: false},
+				{ID: 5, Name: "private", Platform: "anthropic", RateMultiplier: 0.5, IsExclusive: true},
+			},
+			[]service.SupportedModel{
+				{Name: "Claude Sonnet 4.6", Platform: "anthropic", Pricing: &service.ChannelModelPricing{
+					BillingMode:      service.BillingModeToken,
+					InputPrice:       floatPtr(0.000005),
+					OutputPrice:      floatPtr(0.000025),
+					CacheReadPrice:   floatPtr(0.0000005),
+					CacheWritePrice:  floatPtr(0.00000625),
+					PerRequestPrice:  floatPtr(9.9),
+					ImageOutputPrice: floatPtr(8.8),
+				}},
+				{Name: "GPT-5.4", Platform: "openai", Pricing: &service.ChannelModelPricing{
+					BillingMode: service.BillingModeToken, InputPrice: floatPtr(0.000001),
+				}},
+			},
+		),
+		makeChannel("Disabled", "disabled",
+			[]service.AvailableGroupRef{
+				{ID: 6, Name: "disabled", Platform: "anthropic", RateMultiplier: 1.0, IsExclusive: false},
+			},
+			[]service.SupportedModel{
+				{Name: "Disabled Model", Platform: "anthropic", Pricing: &service.ChannelModelPricing{
+					BillingMode: service.BillingModeToken, InputPrice: floatPtr(0.000003),
+				}},
+			},
+		),
+	}
+
+	out := buildProviderPricing(channels, stubResolver, updatedAt)
+
+	require.Equal(t, "CNY", out.Currency)
+	require.Equal(t, "per_1m_tokens", out.PriceUnit)
+	require.Equal(t, "2026-04-22T12:00:00Z", out.UpdatedAt)
+	require.Len(t, out.Models, 1)
+
+	model := out.Models[0]
+	require.Equal(t, "claude-sonnet-4.6", model.ModelName)
+	require.Equal(t, "cc", model.GroupName)
+	require.InDelta(t, 7.5, model.InputPrice, 1e-9)
+	require.NotNil(t, model.OutputPrice)
+	require.InDelta(t, 37.5, *model.OutputPrice, 1e-9)
+	require.NotNil(t, model.CacheInputPrice)
+	require.InDelta(t, 0.75, *model.CacheInputPrice, 1e-9)
+	require.NotNil(t, model.CacheCreatePrice)
+	require.InDelta(t, 9.375, *model.CacheCreatePrice, 1e-9)
+	require.Nil(t, model.CacheCreatePrice1H)
+	require.True(t, model.Enabled)
+}
+
+func mustParseTime(t *testing.T, value string) time.Time {
+	t.Helper()
+	parsed, err := time.Parse(time.RFC3339, value)
+	require.NoError(t, err)
+	return parsed
 }
 
 // scanForKeys 递归扫描任意 JSON 结构（map / []any 嵌套），如果发现任何 deny key，

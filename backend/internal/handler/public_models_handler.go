@@ -1,7 +1,10 @@
 package handler
 
 import (
+	"context"
+	"net/http"
 	"sort"
+	"time"
 
 	"github.com/Wei-Shaw/sub2api/internal/pkg/response"
 	"github.com/Wei-Shaw/sub2api/internal/service"
@@ -34,20 +37,76 @@ func (h *AvailableChannelHandler) ListPublicModels(c *gin.Context) {
 		return
 	}
 
-	// resolveID 把 display name 通过 ChannelService 的渠道映射缓存解析为最终 mapped id
-	// （如 "GPT-5.2" → "gpt-5.2"）。失败 / 无映射时退回 display name。
-	resolveID := func(groupID int64, displayName string) string {
-		res := h.channelService.ResolveChannelMapping(ctx, groupID, displayName)
-		if res.MappedModel != "" {
-			return res.MappedModel
-		}
-		return displayName
-	}
-
+	resolveID := h.modelIDResolver(ctx)
 	groups := aggregatePublicModels(channels, resolveID)
 
 	c.Header("Cache-Control", "public, max-age=300")
 	response.Success(c, groups)
+}
+
+// ListProviderPricing 处理 GET /api/provider/pricing 公开价格抓取接口。
+func (h *AvailableChannelHandler) ListProviderPricing(c *gin.Context) {
+	ctx := c.Request.Context()
+	channels, err := h.channelService.ListAvailable(ctx)
+	if err != nil {
+		c.JSON(http.StatusServiceUnavailable, providerPricingErrorResponse{
+			SchemaVersion: providerPricingSchemaVersion,
+			Success:       false,
+			Message:       "service temporarily unavailable",
+		})
+		return
+	}
+
+	resolveID := h.modelIDResolver(ctx)
+	c.Header("Cache-Control", "public, max-age=300")
+	c.JSON(http.StatusOK, providerPricingSuccessResponse{
+		SchemaVersion: providerPricingSchemaVersion,
+		Success:       true,
+		Data:          buildProviderPricing(channels, resolveID, time.Now()),
+	})
+}
+
+const (
+	providerPricingSchemaVersion = "1.0"
+	providerPriceUnitMultiplier  = 1_000_000
+)
+
+// providerPricingSuccessResponse 是 hvoy 抓取协议的成功响应。
+type providerPricingSuccessResponse struct {
+	SchemaVersion string              `json:"schema_version"`
+	Success       bool                `json:"success"`
+	Message       string              `json:"message"`
+	Data          providerPricingData `json:"data"`
+}
+
+// providerPricingErrorResponse 是 hvoy 抓取协议的失败响应。
+type providerPricingErrorResponse struct {
+	SchemaVersion string `json:"schema_version"`
+	Success       bool   `json:"success"`
+	Message       string `json:"message"`
+}
+
+// providerPricingData 承载本批公开价格数据和生成时间。
+type providerPricingData struct {
+	Currency   string                 `json:"currency"`
+	PriceUnit  string                 `json:"price_unit"`
+	SiteName   string                 `json:"site_name,omitempty"`
+	SiteDomain string                 `json:"site_domain,omitempty"`
+	UpdatedAt  string                 `json:"updated_at"`
+	Models     []providerPricingModel `json:"models"`
+}
+
+// providerPricingModel 是一个 model + group 组合的公开价格条目。
+type providerPricingModel struct {
+	ModelName          string   `json:"model_name"`
+	GroupName          string   `json:"group_name"`
+	InputPrice         float64  `json:"input_price"`
+	OutputPrice        *float64 `json:"output_price"`
+	CacheInputPrice    *float64 `json:"cache_input_price"`
+	CacheCreatePrice   *float64 `json:"cache_create_price"`
+	CacheCreatePrice1H *float64 `json:"cache_create_price_1h"`
+	Enabled            bool     `json:"enabled"`
+	Note               string   `json:"note"`
 }
 
 // publicPricingDTO 模型定价子对象（嵌套在 publicModelDTO.Pricing 内）。
@@ -104,6 +163,90 @@ const (
 // idResolver 把 (groupID, displayName) 解析为最终 mapped id。
 // 由 handler 注入（实际实现走 ChannelService.ResolveChannelMapping）；测试用 stub。
 type idResolver func(groupID int64, displayName string) string
+
+// modelIDResolver 基于当前请求上下文解析渠道映射，无映射时回退到展示名。
+func (h *AvailableChannelHandler) modelIDResolver(ctx context.Context) idResolver {
+	return func(groupID int64, displayName string) string {
+		res := h.channelService.ResolveChannelMapping(ctx, groupID, displayName)
+		if res.MappedModel != "" {
+			return res.MappedModel
+		}
+		return displayName
+	}
+}
+
+// buildProviderPricing 将可用渠道视图转换为 hvoy 第三方价格协议数据。
+func buildProviderPricing(channels []service.AvailableChannel, resolveID idResolver, now time.Time) providerPricingData {
+	models := make([]providerPricingModel, 0)
+	seen := make(map[string]struct{})
+
+	for _, ch := range channels {
+		if ch.Status != service.StatusActive {
+			continue
+		}
+		for _, g := range ch.Groups {
+			if g.IsExclusive {
+				continue
+			}
+			rate := g.RateMultiplier
+			if rate <= 0 {
+				rate = 1.0
+			}
+			for _, m := range ch.SupportedModels {
+				if m.Platform != g.Platform || m.Pricing == nil {
+					continue
+				}
+				modelID := resolveID(g.ID, m.Name)
+				key := g.Name + "\x00" + modelID
+				if _, ok := seen[key]; ok {
+					continue
+				}
+				seen[key] = struct{}{}
+
+				models = append(models, providerPricingModel{
+					ModelName:        modelID,
+					GroupName:        g.Name,
+					InputPrice:       providerPriceValue(m.Pricing.InputPrice, rate),
+					OutputPrice:      providerOptionalPrice(m.Pricing.OutputPrice, rate),
+					CacheInputPrice:  providerOptionalPrice(m.Pricing.CacheReadPrice, rate),
+					CacheCreatePrice: providerOptionalPrice(m.Pricing.CacheWritePrice, rate),
+					Enabled:          true,
+				})
+			}
+		}
+	}
+
+	sort.SliceStable(models, func(i, j int) bool {
+		if models[i].GroupName == models[j].GroupName {
+			return models[i].ModelName < models[j].ModelName
+		}
+		return models[i].GroupName < models[j].GroupName
+	})
+
+	return providerPricingData{
+		Currency:  "CNY",
+		PriceUnit: "per_1m_tokens",
+		UpdatedAt: now.UTC().Format(time.RFC3339),
+		Models:    models,
+	}
+}
+
+// providerPriceValue 把每 token 价格换算为每 1M tokens 价格；缺失时返回 0 以满足必填字段。
+func providerPriceValue(base *float64, rate float64) float64 {
+	if base == nil {
+		return 0
+	}
+	return *base * rate * providerPriceUnitMultiplier
+}
+
+// providerOptionalPrice 把可选价格换算为每 1M tokens 价格；缺失或 0 时返回 nil。
+func providerOptionalPrice(base *float64, rate float64) *float64 {
+	if base == nil || *base == 0 {
+		return nil
+	}
+	v := providerPriceValue(base, rate)
+	return &v
+}
 
 // aggregatePublicModels 将 service.AvailableChannel 列表聚合为公开模型广场响应（按公开分组组织）。
 //

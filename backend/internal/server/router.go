@@ -116,6 +116,7 @@ func registerRoutes(
 	// 模型广场公开接口（fork 扩展，不进 wire DI；method 复用 h.AvailableChannel）
 	public := v1.Group("/public")
 	public.GET("/models", h.AvailableChannel.ListPublicModels)
+	r.GET("/api/provider/pricing", h.AvailableChannel.ListProviderPricing)
 
 	handler.RegisterPageRoutes(v1, cfg.Pricing.DataDir, gin.HandlerFunc(jwtAuth), gin.HandlerFunc(adminAuth), settingService)
 }
