@@ -13,6 +13,7 @@ vi.mock('vue-i18n', () => ({
       'payment.planCard.rate': '倍率',
       'payment.planCard.quota': '额度',
       'payment.planCard.unlimited': '不限',
+      'payment.planCard.models': '模型',
     }[key] ?? key),
   }),
 }))
@@ -30,6 +31,7 @@ const basePlan: SubscriptionPlan = {
   daily_limit_usd: null,
   weekly_limit_usd: null,
   monthly_limit_usd: null,
+  supported_model_scopes: ['claude', 'gemini_text', 'gemini_image'],
   features: [],
   group_platform: 'openai',
   sort_order: 1,
@@ -37,11 +39,13 @@ const basePlan: SubscriptionPlan = {
   group_name: 'OpenAI',
 }
 
-// 挂载套餐卡片，便于分别验证开通和续费按钮状态。
-function mountPlanCard(activeSubscriptions: UserSubscription[] = []) {
+// 挂载套餐卡片，便于分别验证按钮状态和平台模型范围展示。
+function mountPlanCard(overrides: Partial<SubscriptionPlan> = {}, activeSubscriptions: UserSubscription[] = []) {
+  const plan: SubscriptionPlan = { ...basePlan, ...overrides }
+
   return mount(SubscriptionPlanCard, {
     props: {
-      plan: basePlan,
+      plan,
       activeSubscriptions,
     },
   })
@@ -61,16 +65,23 @@ describe('SubscriptionPlanCard action button', () => {
   })
 
   it('keeps the renewal button disabled and does not emit select', async () => {
-    const wrapper = mountPlanCard([
+    const wrapper = mountPlanCard({}, [
       {
         id: 1,
         user_id: 2,
         group_id: basePlan.group_id,
         status: 'active',
+        starts_at: '2026-01-01T00:00:00Z',
+        daily_usage_usd: 0,
+        weekly_usage_usd: 0,
+        monthly_usage_usd: 0,
+        daily_window_start: null,
+        weekly_window_start: null,
+        monthly_window_start: null,
         expires_at: '2099-01-01T00:00:00Z',
         created_at: '2026-01-01T00:00:00Z',
         updated_at: '2026-01-01T00:00:00Z',
-      } as UserSubscription,
+      },
     ])
     const button = wrapper.get('button')
 
@@ -80,5 +91,23 @@ describe('SubscriptionPlanCard action button', () => {
     await button.trigger('click')
 
     expect(wrapper.emitted('select')).toBeUndefined()
+  })
+})
+
+describe('SubscriptionPlanCard model scopes', () => {
+  it('does not show Antigravity model scopes for OpenAI plans', () => {
+    const text = mountPlanCard({ group_platform: 'openai' }).text()
+
+    expect(text).not.toContain('Claude')
+    expect(text).not.toContain('Gemini')
+    expect(text).not.toContain('Imagen')
+  })
+
+  it('shows model scopes for Antigravity plans', () => {
+    const text = mountPlanCard({ group_platform: 'antigravity' }).text()
+
+    expect(text).toContain('Claude')
+    expect(text).toContain('Gemini')
+    expect(text).toContain('Imagen')
   })
 })
